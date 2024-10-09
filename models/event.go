@@ -50,7 +50,7 @@ func GetEventById(id int64) (*Event, error) {
 }
 
 func AddEvent(event Event) (int64, error) {
-	result, err := database.DB.Exec("INSERT INTO events (name, description, location, datetime, userid) VALUES (?, ?, ?, ?, ?)", event.Name, event.Description, event.Location, event.Datetime, 1)
+	result, err := database.DB.Exec("INSERT INTO events (name, description, location, datetime, userid) VALUES (?, ?, ?, ?, ?)", event.Name, event.Description, event.Location, event.Datetime, event.UserId)
 
 	if err != nil {
 		fmt.Println("1", err)

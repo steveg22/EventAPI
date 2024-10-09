@@ -29,7 +29,7 @@ func (user *User) Save() error {
 }
 
 func UserExists(email string) (bool, error) {
-	rows, err := database.DB.Query("SELECT COUNT(email) FROM users WHERE email = ?", email)
+	rows, err := database.DB.Query("SELECT * FROM users WHERE email = ?", email)
 
 	if err != nil {
 		return false, err
@@ -38,6 +38,12 @@ func UserExists(email string) (bool, error) {
 	count := 0
 	for rows.Next() {
 		count += 1
+	}
+
+	defer rows.Close()
+
+	if err := rows.Err(); err != nil {
+		return false, err
 	}
 
 	return count == 1, err
