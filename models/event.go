@@ -66,3 +66,20 @@ func AddEvent(event Event) (int64, error) {
 
 	return id, nil
 }
+
+func UpdateEvent(event *Event) error {
+	query := `
+  UPDATE events
+  SET name = ?, description = ?, location = ?, datetime = ?, userid = ?
+  WHERE id = ?`
+
+	_, err := database.DB.Exec(query, event.Name, event.Description, event.Location, event.Datetime, event.UserId, event.Id)
+
+	return err
+}
+
+func DeleteEvent(id int64) error {
+	_, err := database.DB.Exec("DELETE FROM events WHERE id = ?", id)
+
+	return err
+}
