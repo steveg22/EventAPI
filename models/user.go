@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"example/mysql-api/database"
 	"example/mysql-api/utils"
 )
@@ -28,23 +29,30 @@ func (user *User) Save() error {
 	return err
 }
 
-func UserExists(email string) (bool, error) {
-	rows, err := database.DB.Query("SELECT * FROM users WHERE email = ?", email)
+func UserExists(email string) bool {
+	var userEmail string
+	row := database.DB.QueryRow("SELECT email FROM users WHERE email = ?", email)
+
+	err := row.Scan(&userEmail)
+
+	return err == nil
+}
+
+func (user *User) ValidateCredentials() error {
+	row := database.DB.QueryRow("SELECT password FROM users WHERE email = ?", user.Email)
+
+	var hashedPassword string
+	err := row.Scan(&hashedPassword)
 
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	count := 0
-	for rows.Next() {
-		count += 1
+	passwordIsValid := utils.CheckPasswordHash(hashedPassword, user.Password)
+
+	if !passwordIsValid {
+		return errors.New("Invalid Credentials")
 	}
 
-	defer rows.Close()
-
-	if err := rows.Err(); err != nil {
-		return false, err
-	}
-
-	return count == 1, err
+	return nil
 }

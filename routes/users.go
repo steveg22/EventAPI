@@ -2,6 +2,7 @@ package routes
 
 import (
 	"example/mysql-api/models"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,11 +17,8 @@ func signup(context *gin.Context) {
 		return
 	}
 
-	userExists, err := models.UserExists(user.Email)
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not save user"})
-		return
-	}
+	userExists := models.UserExists(user.Email)
+	fmt.Println("user exists", userExists)
 	if userExists {
 		context.JSON(http.StatusConflict, gin.H{"message": "Email address is already taken"})
 		return
@@ -28,9 +26,29 @@ func signup(context *gin.Context) {
 
 	err = user.Save()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not save user"})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not save user. " + err.Error()})
 		return
 	}
 
 	context.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+}
+
+func login(context *gin.Context) {
+	var user models.User
+
+	err := context.ShouldBindJSON(&user)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Unable to parse user"})
+		return
+	}
+
+	err = user.ValidateCredentials()
+
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Login Successful"})
+
 }
