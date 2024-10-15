@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"example/mysql-api/models"
+	"example/mysql-api/utils"
 	"net/http"
 	"strconv"
 
@@ -37,9 +38,21 @@ func getEventById(c *gin.Context) {
 }
 
 func addEvent(c *gin.Context) {
-	var event models.Event
+	token := c.Request.Header.Get("Authorization")
+	if token == "" {
 
-	err := c.ShouldBindJSON(&event)
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorised (1)"})
+		return
+	}
+
+	err := utils.VerifyToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorised (2)"})
+		return
+	}
+
+	var event models.Event
+	err = c.ShouldBindJSON(&event)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Unable to parse event"})

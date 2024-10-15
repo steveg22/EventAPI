@@ -39,10 +39,10 @@ func UserExists(email string) bool {
 }
 
 func (user *User) ValidateCredentials() error {
-	row := database.DB.QueryRow("SELECT password FROM users WHERE email = ?", user.Email)
+	row := database.DB.QueryRow("SELECT id, password FROM users WHERE email = ?", user.Email)
 
 	var hashedPassword string
-	err := row.Scan(&hashedPassword)
+	err := row.Scan(&user.ID, &hashedPassword)
 
 	if err != nil {
 		return err

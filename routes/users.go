@@ -2,6 +2,7 @@ package routes
 
 import (
 	"example/mysql-api/models"
+	"example/mysql-api/utils"
 	"fmt"
 	"net/http"
 
@@ -49,6 +50,12 @@ func login(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"message": "Login Successful"})
+	token, err := utils.GenerateToken(user.Email, user.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not generate token"})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Login Successful", "token": token})
 
 }
