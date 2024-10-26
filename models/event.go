@@ -12,7 +12,7 @@ type Event struct {
 	Description string    `binding:"required"`
 	Location    string    `binding:"required"`
 	Datetime    time.Time `binding:"required"`
-	UserId      int
+	UserId      int64
 }
 
 func GetAllEvents() ([]Event, error) {
@@ -53,14 +53,12 @@ func AddEvent(event Event) (int64, error) {
 	result, err := database.DB.Exec("INSERT INTO events (name, description, location, datetime, userid) VALUES (?, ?, ?, ?, ?)", event.Name, event.Description, event.Location, event.Datetime, event.UserId)
 
 	if err != nil {
-		fmt.Println("1", err)
 		return 0, err
 	}
 
 	id, err := result.LastInsertId()
 
 	if err != nil {
-		fmt.Println("2", err)
 		return 0, err
 	}
 
@@ -80,6 +78,18 @@ func UpdateEvent(event *Event) error {
 
 func DeleteEvent(id int64) error {
 	_, err := database.DB.Exec("DELETE FROM events WHERE id = ?", id)
+
+	return err
+}
+
+func (event *Event) Register(userId int64) error {
+	_, err := database.DB.Exec("INSERT INTO registrations (eventid, userid) VALUES (?, ?)", event.Id, userId)
+
+	return err
+}
+
+func (event *Event) Unregister(userId int64) error {
+	_, err := database.DB.Exec("DELETE FROM registrations WHERE eventId = ? AND userid = ?", event.Id, userId)
 
 	return err
 }
